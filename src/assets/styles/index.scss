@@ -50,8 +50,19 @@ a {
     text-decoration: none;
     -webkit-backface-visibility: hidden;
 }
-
 ul, li {
     list-style: none;
+}
+.clearfix:after {
+  content: " ";
+  display: block;
+  clear: both;
+  height: 0;
+}
+.fl {
+  float: left;
+}
+.fr{
+  float: right;
 }
 @import url('element-ui/lib/theme-chalk/index.css')

@@ -1,57 +1,41 @@
 <template>
   <div class="calendar">
-    <h2>考勤日历</h2>
-    <div class="calendar-content">
-      <div class="calendar-select clearfix">
-        <el-date-picker class="fl" :clearable="false" @change="initDate"
-            v-model="newDate" type="month" :picker-options="pickerOptions0"/>
-      </div>
-      <div class="calendar-day clearfix">
-        <ul class="fl">
-          <li>
-            <span>{{fdAttDay}}</span>
-            <p>出勤天数</p>
-          </li>
-          <li>
-            <span>{{jbzsc}}</span>
-            <p>加班时长</p>
-          </li>
-          <li>
-            <span>{{fdLeavedays}}</span>
-            <p>请假天数</p>
-          </li>
-          <li>
-            <span>{{fdAbnormaldays}}</span>
-            <p>异常</p>
-          </li>
-        </ul>
-        <ul class="fr">
-          <li v-for="(item,idx) of colorList" :key="idx">
-            <i :class="item.color"></i>
-            <span :title="item.label">{{item.label}}</span>
-          </li>
-        </ul>
-      </div>
-      <ul class="calendar-label clearfix">
-        <li v-for="(item, idx) of tableHead" :key="idx">{{item.title}}</li>
+    <header>
+      <slot name="calendar-title"/>
+    </header>
+    <div class="calendar-day clearfix">
+      <ul class="fl">
+        <li v-for="(item, idx) of totalList" :key="idx">
+          <span>{{item.value}}</span>
+          <p>{{item.label}}</p>
+        </li>
       </ul>
-      <ul class="calendar-num clearfix">
-        <li v-for="(item,idx) of dateArr" :key="idx">
-          <el-tooltip v-if="item.attendStatus" :visible-arrow="false"
-            placement="top" effect="light">
-            <div slot="content">
-              <Tips :abnormal="item.abnormal" :overTime="item.overTime" :vacation="item.vacation" :tips="tips"/>
-            </div>
-            <span :class="item.isSchedul? '': 'gray'">
-              <i class="span-green" v-if="item.attendStatus === '3'">{{item.num}}</i>
-              <i class="span-orange" v-if="item.attendStatus ==='2'">{{item.num}}</i>
-              <i class="span-red" v-if="item.attendStatus ==='1'">{{item.num}}</i>
-            </span>
-          </el-tooltip>
-          <span v-else :class="item.isSchedul? '': 'gray'">{{item.num}}</span>
+      <ul class="fr">
+        <li v-for="(item,idx) of colorList" :key="idx">
+          <i :style="{'backgroundColor': item.color}"></i>
+          <span :title="types[item.type]">{{types[item.type]}}</span>
         </li>
       </ul>
     </div>
+    <ul class="calendar-label clearfix">
+      <li v-for="(item, idx) of weeks" :key="idx">{{item}}</li>
+    </ul>
+    <ul class="calendar-num clearfix">
+      <li v-for="(item,idx) of dateArr" :key="idx">
+        <el-tooltip v-if="item.attendStatus" :visible-arrow="false"
+          placement="top" effect="light">
+          <div slot="content">
+            <Tips :abnormal="item.abnormal" :overTime="item.overTime" :vacation="item.vacation"/>
+          </div>
+          <span :class="item.isSchedul? '': 'gray'">
+            <i class="span-green" v-if="item.attendStatus === '3'">{{item.num}}</i>
+            <i class="span-orange" v-if="item.attendStatus ==='2'">{{item.num}}</i>
+            <i class="span-red" v-if="item.attendStatus ==='1'">{{item.num}}</i>
+          </span>
+        </el-tooltip>
+        <span v-else :class="item.isSchedul? '': 'gray'">{{item.num}}</span>
+      </li>
+    </ul>
   </div>
 </template>
 <script>
@@ -59,21 +43,69 @@ import Tips from './calendar-tips.vue'
 export default {
   name: 'calendar',
   components: { Tips },
+  props: {
+    // 考勤类型
+    types: {
+      type: Object,
+      default: () => {
+        return {
+          '1': '加班',
+          '2': '休假',
+          '3': '异常'
+        }
+      }
+    },
+    // 考勤类型代表的颜色
+    colorList: {
+      type: Array,
+      default: () => {
+        return [
+          {color: '#F5C714', type: '1'},
+          {color: '#70C259', type: '2'},
+          {color: '#FF635D', type: '3'}
+        ]
+      }
+    },
+    // 考勤总计
+    attendanceTotal: {
+      type: Array,
+      default: () => {
+        return [
+          {label: '出勤天数', value: 0},
+          {label: '加班时长', value: 0},
+          {label: '请假天数', value: 0},
+          {label: '异常', value: 0}
+        ]
+      }
+    },
+    // 当前需要的月份
+    nowDate: {
+      type: Date,
+      default: () => {
+        return new Date()
+      }
+    },
+    // 自定义事件
+    event: {
+      type: Function,
+      dafault: () => {}
+    },
+    // 自定义星期名
+    weeks: {
+      type: Array,
+      default: () => {
+        return ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+      }
+    }
+  },
+  computed: {
+    totalList () {
+      return this.attendanceTotal
+    }
+  },
   data () {
     return {
-      visible: false,
-      fdAttDay: 0, // 实际出勤天数
-      fdLeavedays: 0, // 请假天数
-      jbzsc: 0, // 加班总时长
-      fdAbnormaldays: 0, // 异常天数
-      colorList: [
-        {color: 'orange', label: '加班'},
-        {color: 'green', label: '休假'},
-        {color: 'red', label: '异常'}
-      ],
-      statisticalMonth: '', // 传给后台的每月第一天
       dateArr: [],
-      newDate: '', // 当前的日期
       currentYear: '', // 当前的年数
       currentMonth: '', // 当前月份
       firstDay: '', // 第一天
@@ -81,36 +113,19 @@ export default {
       lineNumber: 6,
       EveryMonthDays: [], // 每个月的天数
       strArr: [],
-      tableHead: [
-        {title: '周一'},
-        {title: '周二'},
-        {title: '周三'},
-        {title: '周四'},
-        {title: '周五'},
-        {title: '周六'},
-        {title: '周日'}],
-      str: '',
-      tips: {},
-      pickerOptions0: {
-        disabledDate (time) {
-          let currentYear = (new Date()).getFullYear()
-          let currentMont = (new Date()).getMonth()
-          let firstDate = new Date(currentYear, currentMont, 1)
-          let beforeMonth = firstDate.setMonth(firstDate.getMonth() - 1)
-          let AfterMonth = firstDate.setMonth(firstDate.getMonth() + 2)
-          return time.getTime() > AfterMonth || time.getTime() < beforeMonth
-        }
-      }
+      str: ''
     }
+  },
+  created () {
+    this.initDate()
   },
   methods: {
     initDate () {
-      if (!this.newDate) { this.newDate = new Date() }
-      this.currentYear = this.newDate.getFullYear()
-      this.currentMonth = this.newDate.getMonth()
+      if (!this.nowDate) { this.nowDate = new Date() }
+      this.currentYear = this.nowDate.getFullYear()
+      this.currentMonth = this.nowDate.getMonth()
       // 当前月份的第一天
       this.firstDay = new Date(this.currentYear, this.currentMonth, 1)
-      this.statisticalMonth = new Date(this.currentYear, this.currentMonth, 1)
       // 第一天是星期几
       this.firstnow = this.firstDay.getDay()
       if (this.firstnow > 0) this.firstnow = this.firstnow - 1
@@ -138,32 +153,25 @@ export default {
         }
       }
       // ajax请求数据
-      // this.getSchedulingRecord()
-      // this.getCalderTotal()
-      // this.getAttendInfo()
+      this.event(this.dateArr)
     }
   },
-  created () {
-    this.initDate()
+  watch: {
+    nowDate (val) {
+      val && this.initDate()
+    }
   }
 }
 </script>
 <style lang="scss">
-.clearfix:after {
-  content: " ";
-  display: block;
-  clear: both;
-  height: 0;
-}
 .calendar{
-  float: left;
-  width: 50rem;
-  height: 28.5rem;
   background: #fff;
   padding: 20px;
   box-sizing: border-box;
-  @media (min-device-width: 1920px) {
-    width: 975px;
+  width: 980px;
+  header{
+    height: 60px;
+    line-height: 60px;
   }
   i{
     font-style: normal;
@@ -209,47 +217,12 @@ export default {
           border-radius: 50%;
           background: #CFCFCF;
         }
-        .orange{
-          background: #F5C714;
-        }
-        .green{
-          background: #70C259;
-        }
-        .red{
-          background: #FF635D;
-        }
         span{
           font-size: 12px;
           color: #767C93;
           letter-spacing: 0.2px;
         }
       }
-    }
-  }
-  .calendar-select{
-    padding: 19px 0;
-    >p{
-      cursor: pointer;
-      margin-left: 18px;
-      float: right;
-      font-size: 13px;
-      color: #707786;
-      height: 28px;
-      line-height: 28px;
-      width: 73px;
-      background: #FFFFFF;
-      border: 1px solid #EEF0F4;
-      border-radius: 4px;
-      text-align: center;
-      transition: all 0.5s linear;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-    >p:hover {
-      border: 1px solid #3AA5FF;
-      color:#3AA5FF;
-      transition: all 0.5s linear;
     }
   }
   .calendar-label{
