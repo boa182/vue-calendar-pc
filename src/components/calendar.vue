@@ -28,9 +28,17 @@
             <Tips :abnormal="item.abnormal" :overTime="item.overTime" :vacation="item.vacation"/>
           </div>
           <span :class="item.isSchedul? '': 'gray'">
-            <i class="span-green" v-if="item.attendStatus === '3'">{{item.num}}</i>
-            <i class="span-orange" v-if="item.attendStatus ==='2'">{{item.num}}</i>
-            <i class="span-red" v-if="item.attendStatus ==='1'">{{item.num}}</i>
+            <i
+              :style="{'backgroundColor': i.color}"
+              v-for="(i,idx) of colorList"
+              :key="idx">
+              <i class="cirle" v-if="i.type === item.attendStatus">
+                {{item.num}}
+              </i>
+            </i>
+            <!-- <i class="cirle" v-if="item.attendStatus === '2'">{{item.num}}</i>
+            <i class="cirle" v-if="item.attendStatus ==='1'">{{item.num}}</i>
+            <i class="cirle" v-if="item.attendStatus ==='3'">{{item.num}}</i> -->
           </span>
         </el-tooltip>
         <span v-else :class="item.isSchedul? '': 'gray'">{{item.num}}</span>
@@ -44,6 +52,10 @@ export default {
   name: 'calendar',
   components: { Tips },
   props: {
+    dataList: {
+      type: Array,
+      default: () => { return [] }
+    },
     // 考勤类型
     types: {
       type: Object,
@@ -152,8 +164,9 @@ export default {
           this.dateArr.push(dateObj)
         }
       }
+      this.event()
+      this.dateArr = this.dateArr.map(x => ({...x, ...this.dataList.find(y => y.num === x.num)}))
       // ajax请求数据
-      this.event(this.dateArr)
     }
   },
   watch: {
@@ -254,32 +267,12 @@ export default {
     .gray{
       color: #B9BECE;
     }
-    .span-green{
+    .cirle{
       cursor: pointer;
       color: #fff;
       display: inline-block;
       width: 30px;
       border-radius: 50%;
-      background: #70C259;
-      background-image: linear-gradient(-180deg, #70C259 3%, #B2D687 99%);
-    }
-    .span-red{
-      cursor: pointer;
-      display: inline-block;
-      width: 30px;
-      border-radius: 50%;
-      background: #FF635D;
-      background-image: linear-gradient(-180deg, #FF635D 3%, #FF944B 100%);
-      color: #fff;
-    }
-    .span-orange{
-      cursor: pointer;
-      color: #fff;
-      display: inline-block;
-      width: 30px;
-      border-radius: 50%;
-      background: #F5C714;
-      background-image: linear-gradient(-180deg, #F5C714 0%, #FDB33F 100%);
     }
   }
 }

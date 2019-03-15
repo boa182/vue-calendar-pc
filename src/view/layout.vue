@@ -1,6 +1,6 @@
 <template>
   <div class="layout">
-    <calendar :nowDate="nowDate" :event="event">
+    <calendar :nowDate="nowDate" :event="event" :dataList="dataList">
       <p slot="calendar-title">
         <span class="calendar-title">考勤日历</span>
         <el-date-picker
@@ -22,6 +22,7 @@ export default {
   data () {
     return {
       nowDate: '', // 当前需要显示的日期
+      dataList: [],
       pickerOptions0: { // 日期选择器限制
         disabledDate (time) {
           let currentYear = (new Date()).getFullYear()
@@ -37,7 +38,34 @@ export default {
   methods: {
     changeEvent () {
     },
-    event (Arr) { console.log(Arr) }
+    event (Arr) {
+      this.dataList = [
+        {
+          num: '5',
+          isSchedul: 'Y', // 是否排班
+          attendStatus: '1'
+        },
+        {
+          num: '7',
+          isSchedul: 'Y',
+          attendStatus: '2'
+        },
+        {
+          num: '14',
+          isSchedul: 'Y',
+          attendStatus: '3'
+        },
+        {
+          num: '18',
+          isSchedul: 'Y'
+        },
+        {
+          num: '19',
+          isSchedul: 'Y'
+        }
+
+      ]
+    }
   },
   created () {
     this.nowDate = new Date()

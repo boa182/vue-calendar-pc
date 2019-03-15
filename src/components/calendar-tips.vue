@@ -3,8 +3,8 @@
     <template v-if="abnormalList.length > 0">
       <div v-for="(a, index) of abnormalList" :key="index">
         <p class="pt-10">异常类型：{{a.abnType}}</p>
-        <p>上班有效卡：{{a.abnStartDate||tips.noneCalendar}}</p>
-        <p>下班有效卡：{{a.abnEndDate||tips.noneCalendar}}</p>
+        <p>上班有效卡：{{a.abnStartDate||'暂无数据'}}</p>
+        <p>下班有效卡：{{a.abnEndDate||'暂无数据'}}</p>
       </div>
     </template>
     <template v-if="overTimeList.length > 0">
